@@ -6,7 +6,7 @@
     android:orientation="vertical"
     android:padding="8dp">
 
-    <!-- Верхняя часть: сетка 16x16 (занимает основное пространство) -->
+    <!-- Сетка 16x16 -->
     <GridLayout
         android:id="@+id/gridLayout"
         android:layout_width="match_parent"
@@ -16,42 +16,64 @@
         android:rowCount="16"
         android:alignmentMode="alignMargins"
         android:padding="2dp">
-
-
     </GridLayout>
 
-    <!-- Нижняя панель: цвета -->
+    <!-- Панель выбора цвета -->
     <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:orientation="horizontal"
-        android:gravity="center"
+        android:orientation="vertical"
+        android:background="#f0f0f0"
         android:padding="16dp"
-        android:background="#f0f0f0">
+        android:layout_marginTop="8dp">
 
+        <!-- Превью цвета -->
         <View
-            android:id="@+id/btnRed"
-            android:layout_width="50dp"
-            android:layout_height="50dp"
+            android:id="@+id/colorPreview"
+            android:layout_width="60dp"
+            android:layout_height="60dp"
+            android:layout_gravity="center"
             android:background="#FF0000"
-            android:layout_margin="8dp"
-            android:onClick="selectRed" />
+            android:layout_marginBottom="16dp" />
 
-        <View
-            android:id="@+id/btnBlue"
-            android:layout_width="50dp"
-            android:layout_height="50dp"
-            android:background="#0000FF"
-            android:layout_margin="8dp"
-            android:onClick="selectBlue" />
+        <!-- Ползунок Red -->
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Красный"
+            android:textStyle="bold" />
+        <SeekBar
+            android:id="@+id/seekBarRed"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:max="255"
+            android:progress="255" />
 
-        <View
-            android:id="@+id/btnWhite"
-            android:layout_width="50dp"
-            android:layout_height="50dp"
-            android:background="#FFFFFF"
-            android:layout_margin="8dp"
-            android:onClick="selectWhite" />
+        <!-- Ползунок Green -->
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Зелёный"
+            android:textStyle="bold" />
+        <SeekBar
+            android:id="@+id/seekBarGreen"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:max="255"
+            android:progress="0" />
+
+        <!-- Ползунок Blue -->
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Синий"
+            android:textStyle="bold" />
+        <SeekBar
+            android:id="@+id/seekBarBlue"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:max="255"
+            android:progress="0" />
 
     </LinearLayout>
 

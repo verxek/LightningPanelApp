@@ -5,13 +5,14 @@ import android.os.Bundle;
 import android.os.StrictMode;
 import android.view.View;
 import android.widget.GridLayout;
+import android.widget.SeekBar;
 import android.widget.Toast;
 
 public class MainActivity extends AppCompatActivity {
 
-    private static final String RPI_IP = "http://192.168.1.100:5000"; //  IP Raspberry Pi
+    private static final String RPI_IP = "http://192.168.1.100:5000"; // ← Замените на IP вашего Raspberry Pi
 
-    // текущий цвет кисти (RGB)
+    // Текущий цвет кисти (RGB)
     private int currentRed = 255;
     private int currentGreen = 0;
     private int currentBlue = 0;
@@ -22,10 +23,14 @@ public class MainActivity extends AppCompatActivity {
     {
         for (int y = 0; y < 16; y++) {
             for (int x = 0; x < 16; x++) {
-                pixelColors[y][x] = 0xFF000000; // Чёрный (ARGB)
+                pixelColors[y][x] = 0xFF000000; // Чёрный по умолчанию
             }
         }
     }
+
+    // Элементы UI
+    private View colorPreview;
+    private SeekBar seekBarRed, seekBarGreen, seekBarBlue;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -37,11 +42,68 @@ public class MainActivity extends AppCompatActivity {
         StrictMode.setThreadPolicy(policy);
 
         setupGrid();
+
+        // Инициализация RGB-пикера
+        colorPreview = findViewById(R.id.colorPreview);
+        seekBarRed = findViewById(R.id.seekBarRed);
+        seekBarGreen = findViewById(R.id.seekBarGreen);
+        seekBarBlue = findViewById(R.id.seekBarBlue);
+
+        // Устанавливаем начальные значения ползунков
+        seekBarRed.setProgress(currentRed);
+        seekBarGreen.setProgress(currentGreen);
+        seekBarBlue.setProgress(currentBlue);
+
+        // Обновляем превью
+        updateColorPreview();
+
+        // Слушатели для ползунков
+        seekBarRed.setOnSeekBarChangeListener(new SeekBar.OnSeekBarChangeListener() {
+            @Override
+            public void onProgressChanged(SeekBar seekBar, int progress, boolean fromUser) {
+                currentRed = progress;
+                updateColorPreview();
+            }
+
+            @Override
+            public void onStartTrackingTouch(SeekBar seekBar) {}
+
+            @Override
+            public void onStopTrackingTouch(SeekBar seekBar) {}
+        });
+
+        seekBarGreen.setOnSeekBarChangeListener(new SeekBar.OnSeekBarChangeListener() {
+            @Override
+            public void onProgressChanged(SeekBar seekBar, int progress, boolean fromUser) {
+                currentGreen = progress;
+                updateColorPreview();
+            }
+
+            @Override
+            public void onStartTrackingTouch(SeekBar seekBar) {}
+
+            @Override
+            public void onStopTrackingTouch(SeekBar seekBar) {}
+        });
+
+        seekBarBlue.setOnSeekBarChangeListener(new SeekBar.OnSeekBarChangeListener() {
+            @Override
+            public void onProgressChanged(SeekBar seekBar, int progress, boolean fromUser) {
+                currentBlue = progress;
+                updateColorPreview();
+            }
+
+            @Override
+            public void onStartTrackingTouch(SeekBar seekBar) {}
+
+            @Override
+            public void onStopTrackingTouch(SeekBar seekBar) {}
+        });
     }
 
     private void setupGrid() {
         GridLayout grid = findViewById(R.id.gridLayout);
-        int margin = 1; // Отступ между ячейками
+        int margin = 1;
 
         for (int y = 0; y < 16; y++) {
             for (int x = 0; x < 16; x++) {
@@ -49,7 +111,7 @@ public class MainActivity extends AppCompatActivity {
                 GridLayout.LayoutParams params = new GridLayout.LayoutParams();
                 params.width = 0;
                 params.height = 0;
-                params.columnSpec = GridLayout.spec(y, 1, 1.0f); // Важно: вес 1.0f
+                params.columnSpec = GridLayout.spec(y, 1, 1.0f);
                 params.rowSpec = GridLayout.spec(x, 1, 1.0f);
                 params.setMargins(margin, margin, margin, margin);
                 cell.setLayoutParams(params);
@@ -66,7 +128,6 @@ public class MainActivity extends AppCompatActivity {
 
     private void onPixelClick(int x, int y) {
         int color = 0xFF000000 | (currentRed << 16) | (currentGreen << 8) | currentBlue;
-
         pixelColors[y][x] = color;
 
         View cell = getCellAt(x, y);
@@ -74,7 +135,6 @@ public class MainActivity extends AppCompatActivity {
             cell.setBackgroundColor(color);
         }
 
-        // Отправляем на Raspberry Pi
         sendToRaspberryPi(x, y, currentRed, currentGreen, currentBlue);
     }
 
@@ -89,7 +149,6 @@ public class MainActivity extends AppCompatActivity {
 
     private void sendToRaspberryPi(int x, int y, int r, int g, int b) {
         try {
-            // Формируем URL: http://192.168.1.100:5000/set/x/y/r/g/b
             String urlString = RPI_IP + "/set/" + x + "/" + y + "/" + r + "/" + g + "/" + b;
             java.net.URL url = new java.net.URL(urlString);
 
@@ -110,24 +169,9 @@ public class MainActivity extends AppCompatActivity {
         }
     }
 
-    public void selectRed(View view) {
-        currentRed = 255;
-        currentGreen = 0;
-        currentBlue = 0;
-        Toast.makeText(this, "Цвет:  Красный", Toast.LENGTH_SHORT).show();
-    }
-
-    public void selectBlue(View view) {
-        currentRed = 0;
-        currentGreen = 0;
-        currentBlue = 255;
-        Toast.makeText(this, "Цвет:  Синий", Toast.LENGTH_SHORT).show();
-    }
-
-    public void selectWhite(View view) {
-        currentRed = 255;
-        currentGreen = 255;
-        currentBlue = 255;
-        Toast.makeText(this, "Цвет:  Белый", Toast.LENGTH_SHORT).show();
+    // Обновляет цвет квадрата-превью
+    private void updateColorPreview() {
+        int color = 0xFF000000 | (currentRed << 16) | (currentGreen << 8) | currentBlue;
+        colorPreview.setBackgroundColor(color);
     }
 }
