@@ -1,16 +1,51 @@
-# This is a sample Python script.
+#------------------------
 
-# Press Shift+F10 to execute it or replace it with your code.
-# Press Double Shift to search everywhere for classes, files, tool windows, actions, and settings.
+from win32 import win32file
+import numpy as np
+import time
+#------------------------
 
+comport: str = "COM5"
+byte_size: int = 8
+bound_rate: int = 9600
 
-def print_hi(name):
-    # Use a breakpoint in the code line below to debug your script.
-    print(f'Hi, {name}')  # Press Ctrl+F8 to toggle the breakpoint.
+#------------------------
 
+hFile = win32file.CreateFile(   comport, 
+                                win32file.GENERIC_READ | win32file.GENERIC_WRITE, 
+                                0,
+                                None,
+                                win32file.OPEN_EXISTING, 
+                                0,
+                                None)
 
-# Press the green button in the gutter to run the script.
-if __name__ == '__main__':
-    print_hi('PyCharm')
+comDCB = win32file.DCB()
 
-# See PyCharm help at https://www.jetbrains.com/help/pycharm/
+comDCB.ByteSize     = byte_size
+comDCB.Parity       = win32file.NOPARITY
+comDCB.StopBits     = win32file.ONESTOPBIT
+comDCB.BaudRate     = bound_rate
+
+win32file.SetCommState(hFile, comDCB)
+win32file.SetupComm(hFile, 4096, 4096)
+# for j in range(2):
+#     #4 байтовый int
+#     for h in range(2):
+#         buffer = np.array([0]*10, dtype=np.int32)
+#
+#     #color mem test
+#         for i in range(8):
+
+buffer = np.array([0], dtype=np.uint32)
+for i in range(256):
+    buffer[0] = 0
+    # buffer[0] |= (255 & 0xFF) << 24
+    buffer[0] |= (120 & 0xFF) << 16
+    buffer[0] |= (44 & 0xFF) << 8
+    buffer[0] |= (4 & 0xFF)
+    data = buffer.tobytes()
+    print(buffer, data, len(data))
+    win32file.WriteFile(hFile, data, None)
+    # time.sleep(0.02)
+
+#------------------------
