@@ -10,7 +10,7 @@ import android.widget.Toast;
 
 public class MainActivity extends AppCompatActivity {
 
-    private static final String RPI_IP = "http://192.168.1.100:5000"; // ← Замените на IP вашего Raspberry Pi
+    private static final String RPI_IP = "http://192.168.1.100:5000"; // IP Raspberry Pi
 
     // Текущий цвет кисти (RGB)
     private int currentRed = 255;
@@ -23,12 +23,12 @@ public class MainActivity extends AppCompatActivity {
     {
         for (int y = 0; y < 16; y++) {
             for (int x = 0; x < 16; x++) {
-                pixelColors[y][x] = 0xFF000000; // Чёрный по умолчанию
+                pixelColors[y][x] = 0x00000000;
             }
         }
     }
 
-    // Элементы UI
+
     private View colorPreview;
     private SeekBar seekBarRed, seekBarGreen, seekBarBlue;
 
@@ -43,7 +43,7 @@ public class MainActivity extends AppCompatActivity {
 
         setupGrid();
 
-        // Инициализация RGB-пикера
+        // RGB-пикер
         colorPreview = findViewById(R.id.colorPreview);
         seekBarRed = findViewById(R.id.seekBarRed);
         seekBarGreen = findViewById(R.id.seekBarGreen);
@@ -149,7 +149,11 @@ public class MainActivity extends AppCompatActivity {
 
     private void sendToRaspberryPi(int x, int y, int r, int g, int b) {
         try {
-            String urlString = RPI_IP + "/set/" + x + "/" + y + "/" + r + "/" + g + "/" + b;
+            int argbColor = 0xFF000000 | (r << 16) | (g << 8) | b;
+
+            String hexColor = String.format("0x%06X", argbColor & 0xFFFFFF);
+
+            String urlString = RPI_IP + "/set/" + x + "/" + y + "/" + hexColor;
             java.net.URL url = new java.net.URL(urlString);
 
             java.net.HttpURLConnection conn = (java.net.HttpURLConnection) url.openConnection();
