@@ -7,10 +7,11 @@ import android.view.View;
 import android.widget.GridLayout;
 import android.widget.SeekBar;
 import android.widget.Toast;
+import java.util.concurrent.atomic.AtomicReference;
 
 public class MainActivity extends AppCompatActivity {
 
-    private static final String RPI_IP = "http://192.168.1.100:5000"; // IP Raspberry Pi
+    private String RPI_IP = "http://unknown:5000"; // будет изменён после поиска
 
     // Текущий цвет кисти (RGB)
     private int currentRed = 255;
@@ -177,5 +178,65 @@ public class MainActivity extends AppCompatActivity {
     private void updateColorPreview() {
         int color = 0xFF000000 | (currentRed << 16) | (currentGreen << 8) | currentBlue;
         colorPreview.setBackgroundColor(color);
+    }
+
+    public void onDiscoverClick(View view) {
+        discoverRaspberryPi();
+    }
+    private AtomicReference<String> discoveredRpiIp = new AtomicReference<>(null);
+
+    private void discoverRaspberryPi() {
+        new Thread(() -> {
+            String subnet = getLocalSubnet();
+            int port = 5000;
+            String foundIp = null;
+
+            for (int i = 1; i <= 254; i++) {
+                if (foundIp != null) break;
+
+                String ip = subnet + i;
+                try {
+                    java.net.Socket socket = new java.net.Socket();
+                    socket.connect(new java.net.InetSocketAddress(ip, port), 300);
+                    socket.getOutputStream().write("PING\n".getBytes());
+                    socket.getOutputStream().flush();
+
+                    byte[] buffer = new byte[64];
+                    int len = socket.getInputStream().read(buffer);
+                    String response = new String(buffer, 0, len).trim();
+
+                    if ("LIGHT_PANEL_OK".equals(response)) {
+                        foundIp = ip;
+                    }
+
+                    socket.close();
+                } catch (Exception e) {
+                    // Не отвечает — продолжаем
+                }
+            }
+
+            discoveredRpiIp.set(foundIp); // Сохраняем результат
+
+            runOnUiThread(() -> {
+                String ip = discoveredRpiIp.get();
+                if (ip != null) {
+                    Toast.makeText(MainActivity.this, "Найдено: " + ip, Toast.LENGTH_LONG).show();
+                    RPI_IP = "http://" + ip + ":5000";
+                } else {
+                    Toast.makeText(MainActivity.this, "Устройство не найдено", Toast.LENGTH_LONG).show();
+                }
+            });
+        }).start();
+    }
+    // Получаем свою сеть
+    private String getLocalSubnet() {
+        try {
+            java.net.InetAddress local = java.net.InetAddress.getLocalHost();
+            String hostAddress = local.getHostAddress();
+            // Убираем последнюю часть
+            return hostAddress.replaceAll("\\d+$", "");
+        } catch (Exception e) {
+            return "192.168.1.";
+        }
     }
 }
