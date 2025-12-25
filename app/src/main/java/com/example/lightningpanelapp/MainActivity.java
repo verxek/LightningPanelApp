@@ -8,6 +8,7 @@ import android.widget.GridLayout;
 import android.widget.SeekBar;
 import android.widget.Toast;
 import java.util.concurrent.atomic.AtomicReference;
+import java.io.IOException;
 
 public class MainActivity extends AppCompatActivity {
 
@@ -197,21 +198,30 @@ public class MainActivity extends AppCompatActivity {
                 String ip = subnet + i;
                 try {
                     java.net.Socket socket = new java.net.Socket();
-                    socket.connect(new java.net.InetSocketAddress(ip, port), 300);
-                    socket.getOutputStream().write("PING\n".getBytes());
+                    socket.connect(new java.net.InetSocketAddress(ip, port), 300); // таймаут подключения
+                    socket.setSoTimeout(500); // таймаут чтения — 500 мс
+
+                    socket.getOutputStream().write("PING_LIGHT_PANEL\n".getBytes());
                     socket.getOutputStream().flush();
 
                     byte[] buffer = new byte[64];
                     int len = socket.getInputStream().read(buffer);
+
+                    if (len == -1) {
+                        throw new IOException("Нет данных от устройства");
+                    }
+
                     String response = new String(buffer, 0, len).trim();
 
                     if ("LIGHT_PANEL_OK".equals(response)) {
                         foundIp = ip;
+                    } else {
+                        System.out.println("Получен неверный ответ: " + response);
                     }
 
-                    socket.close();
+                    socket.close(); // закрытие
                 } catch (Exception e) {
-                    // Не отвечает — продолжаем
+                    // продолжаем
                 }
             }
 
